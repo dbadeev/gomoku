@@ -42,22 +42,22 @@ class Canvas(object):
         self.canvas.place(relx=0.5, rely=0.499, anchor='center')
 
     # обновление доски по запросу
-    def update_board(self, GameAssist):
-        self.color = GameAssist.cnt_player
+    def update_board(self, Field):
+        self.color = Field.cnt_player
         # self.canvas.delete("all")
         self.canvas.create_image(*BOARD_OFFSET, anchor='nw', image=self.tkBoard)
-        board = GameAssist.board
-        size = GameAssist.board.size
+        board = Field.board
+        size = Field.size
         for i in range(size):
             for j in range(size):
-                stone = board.board[i][j]
+                stone = board[i][j]
                 if stone != 0:
                     stone = self.tkAlliance if stone == 2 else self.tkHorde
                     offset = transform_coords([j, i])
                     self.canvas.create_image(*offset, anchor="nw", image=stone)
 
-        if len(GameAssist.move_history) > 0:
-            last_move = GameAssist.move_history[-1]
+        if len(Field.move_history) > 0:
+            last_move = Field.move_history[-1]
             last_move = last_move[::-1]
             offset = transform_coords(last_move) + ARMY_SIZE // 2
             radius = ARMY_SIZE[0] // 2

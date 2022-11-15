@@ -3,6 +3,7 @@ import tkinter as tk
 
 # from agent import Agent
 # from game_assist import GameAssist
+from board import Field
 from .canvas import Canvas
 from .ui import UI
 from .lib import BACKGROUND_COLOR, SIZE
@@ -10,9 +11,10 @@ from .lib import BACKGROUND_COLOR, SIZE
 
 # класс отрисовки
 class Movie(object):
-	def __init__(self, GameAssist):
+	def __init__(self, Field):
 		# ссылка на все основные элементы игрового поля
-		self.GameAssist = GameAssist
+		# self.GameAssist = GameAssist
+		self.Field = Field
 
 		# подключение и настройка ткинтера
 		self.root = tk.Tk()
@@ -43,17 +45,17 @@ class Movie(object):
 
 	# отображение игровой инфы каждую секунду
 	def update_labels(self):
-		message = f"Turn {self.GameAssist.turn}"
-		if self.GameAssist.winner is not None:
-			message = f"P{self.GameAssist.winner.color} won."
-		self.ui.update_info(self.GameAssist.players, self.timers, message)
+		message = f"Turn {self.Field.turn}"
+		if self.Field.winner is not None:
+			message = f"P{self.Field.winner.color} won."
+		self.ui.update_info(self.Field.players, self.timers, message)
 		self.root.after(1000, self.update_labels)
 
 	# каждый тик
 	def update_logic(self):
 		# если предыдущая итерация закончилась
 		if not self.b_update:
-			self.canvas.update_board(self.GameAssist)
+			self.canvas.update_board(self.Field)
 			self.b_update = True
 			self.root.after(1, self.update_logic)
 			return
@@ -64,17 +66,17 @@ class Movie(object):
 			return
 
 		# выбор AI
-		self.GameAssist.begin = time.time()
-		cnt_player = self.GameAssist.cnt_player
-		player = self.GameAssist.players[cnt_player]
-		# is_notation = self.GameAssist.notation and self.GameAssist.notation.running()
+		self.Field.begin = time.time()
+		cnt_player = self.Field.cnt_player
+		player = self.Field.players[cnt_player]
+		# is_notation = self.Field.notation and self.Field.notation.running()
 
 		# ход AI
 		# if is_notation:
-		# 	move = self.GameAssist.notation.get_move()
+		# 	move = self.Field.notation.get_move()
 		# elif isinstance(player, Agent):
 		# 	self.playerInput = False
-		# 	move = player.find_move(self.GameAssist)
+		# 	move = player.find_move(self.Field)
 		# else:
 		# 	self.playerInput = True
 		# 	if self.move is None:
@@ -90,16 +92,16 @@ class Movie(object):
 
 		# если скорость работы бота медленнее лимита то противоположный игрок выйграл
 		# self.timers[cnt_player] = round(time.time() - self.begins[cnt_player])
-		# if self.timers[cnt_player] > self.GameAssist.time_limit:
-		# 	self.GameAssist.winner = self.GameAssist.players[1 - cnt_player]
+		# if self.timers[cnt_player] > self.Field.time_limit:
+		# 	self.Field.winner = self.Field.players[1 - cnt_player]
 
 		# если точка на доске уже занята
-		if not self.GameAssist.board.is_empty(*move):
+		if not self.Field.is_empty(*move):
 			self.root.after(1, self.update_logic)
 			return
 
 		# ход и проверка на незаконный ход
-		if not self.GameAssist.place_on_board(move):
+		if not self.Field.place_on_board(move):
 			if move not in self.illegal_moves:
 				self.illegal_moves.append(move)
 				self.canvas.show_illegal_move(move[::-1])
@@ -112,7 +114,7 @@ class Movie(object):
 		self.illegal_moves = []
 		self.b_update = False
 		self.begins = [time.time(), time.time()]
-		self.over = self.GameAssist.winner != None
+		self.over = self.Field.winner != None
 
 		# self.root.after(250 if is_notation else 1, self.update_logic)
 		self.root.after(1, self.update_logic)
@@ -125,7 +127,9 @@ class Movie(object):
 		self.move = move
 
 	def on_click_restart(self):
-		self.GameAssist.reset_all()
+		# self.Board.reset_all()
+		self.Field.reset_all()
+
 		self.canvas.reset()
 
 		# ??
@@ -142,9 +146,9 @@ class Movie(object):
 		self.begins = [time.time(), time.time()]
 		self.timers = [0, 0]
 
-		self.canvas.update_board(self.GameAssist)
-		players = self.GameAssist.players
-		message = f"Turn {self.GameAssist.turn}"
+		self.canvas.update_board(self.Field)
+		players = self.Field.players
+		message = f"Turn {self.Field.turn}"
 		self.ui.update_info(players, self.timers, message)
 
 	# выход из приложения
@@ -155,7 +159,7 @@ class Movie(object):
 	def on_click_help(self, iteration=0):
 		if not self.readyForInput():
 			return
-		self.move = self.GameAssist.move_hint()
+		self.move = self.Field.move_hint()
 		self.playerInput = False
 
 	# ctrl + z откат последнего хода
@@ -163,11 +167,11 @@ class Movie(object):
 		if not self.readyForInput():
 			return
 		for _ in range(2):
-			if len(self.GameAssist.move_history) > 0:
-				self.GameAssist.undo_move()
-				self.GameAssist.turn -= 1
-		for player in self.GameAssist.players:
+			if len(self.Field.move_history) > 0:
+				self.Field.undo_move()
+				self.Field.turn -= 1
+		for player in self.Field.players:
 			if hasattr(player, 'undo_scores'):
 				player.color_scores = player.undo_scores
 		self.playerInput = False
-		self.canvas.update_board(self.GameAssist)
+		self.canvas.update_board(self.Field)

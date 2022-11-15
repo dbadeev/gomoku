@@ -3,8 +3,9 @@ import sys
 
 from globals import *
 from messages import Messages
-from board import Board
-from game_assist import GameAssist
+from board import Field
+# from rules import Rules
+# from game_assist import GameAssist
 
 from graphics import Movie
 
@@ -77,7 +78,8 @@ def main():
 		# пока заглушка
 		players = [COMPETITORS[args.p1](1), COMPETITORS[args.p2](2)]
 		# players = [args.p1, args.p2]
-		game = GameAssist(board=Board(filename=None), players=players)
+		# game = GameAssist(board=Field(filename=None), players=players)
+		game = Field(filename=None, players=players)
 		if args.term:
 			game.start_terminal()
 		else:
