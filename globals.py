@@ -1,5 +1,5 @@
 import numpy as np
-from human import Player
+from player import Player, HumanPlayer, GomokuAIPlayer
 
 # ГЛОБАЛЬНЫЕ КОНСТАНТЫ ###
 # направляющие в точке [0, 0] (вниз, по диагонали вверх, вправо, по диагонали
@@ -7,7 +7,8 @@ from human import Player
 REPERS = np.array([[1, 0], [-1, 1], [0, 1], [1, 1]])
 
 COMPETITORS = {
-    "human": Player,
+    "human": HumanPlayer,
+    "AI": GomokuAIPlayer
     # "minimax": minimax_agent_wrapper("minimax"),
     # "alpha_beta": minimax_agent_wrapper("alpha_beta"),
     # "alpha_beta_memory": minimax_agent_wrapper("alpha_beta_memory"),
