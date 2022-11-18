@@ -41,7 +41,7 @@ def parse_args() -> argparse.Namespace:
 	parser.add_argument('--player2', '-p2',
 						type=str,
 						dest='p2',
-						default='human',
+						default='AI',
 						help="Player2's behaviour should be in: "
 							 'human(default), minimax, alpha_beta, ...')
 	# parser.add_argument('--depth', '-d',
@@ -76,7 +76,7 @@ def main():
 		# validate_args(args)
 		# С разными вариантами Player-ов нужно будет переделать,
 		# пока заглушка
-		players = [COMPETITORS[args.p1](1), COMPETITORS[args.p2](2)]
+		players = [COMPETITORS[args.p1](1, 2), COMPETITORS[args.p2](2, 1)]
 		# players = [args.p1, args.p2]
 		# game = GameAssist(board=Field(filename=None), players=players)
 		game = Field(filename=None, players=players)

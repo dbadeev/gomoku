@@ -1,16 +1,17 @@
 from __future__ import annotations
 
+from globals import *
 from copy import copy, deepcopy
-
 import numpy as np
 
-from globals import *
 # from rules import Rules
 from messages import Messages as Say
 from typing import List, Tuple, Optional, Iterable
 from numpy import ndarray
 
 from utils import move_point, n_directions
+
+REPERS = np.array([[1, 0], [-1, 1], [0, 1], [1, 1]])
 
 
 class Field:
@@ -553,6 +554,7 @@ class Rules:
         :return: captures: list
           List of coordinates for the captured stones
         """
+
         coords: ndarray = np.append(REPERS, REPERS * -1, axis=0)
         (x, y), size = player.last_move, board.size
         captures = []
