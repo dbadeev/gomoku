@@ -28,7 +28,7 @@ class Player(ABC):
         Five in a row stones on previous move
     """
 
-    def __init__(self, color: int, opponent_color: int) -> None:
+    def __init__(self, color: int, opponent_color: int, board: Field) -> None:
         self.color = color
         self.opponent_color = opponent_color
         self.last_move = (-2, -2)
@@ -36,7 +36,12 @@ class Player(ABC):
         self.captures = 0
         self.five_in_a_row_prev = False
 
+        self.pregame_init(board)
+
     def get_move(self, position: Field) -> Tuple[int, int] or None:
+        pass
+
+    def pregame_init(self, board: Field):
         pass
 
 

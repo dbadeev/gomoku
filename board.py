@@ -375,6 +375,7 @@ class Field:
         Main Function for Terminal mode, run the game
         """
         print(self)
+        print(self.players)
         while 1:
             player = self.players[self.cnt_player]
 

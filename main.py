@@ -76,10 +76,12 @@ def main():
 		# validate_args(args)
 		# С разными вариантами Player-ов нужно будет переделать,
 		# пока заглушка
-		players = [COMPETITORS[args.p1](1, 2), COMPETITORS[args.p2](2, 1)]
+		game = Field(filename=None, players=[])
+		players = [COMPETITORS[args.p1](1, 2, game), COMPETITORS[args.p2](2, 1, game)]
 		# players = [args.p1, args.p2]
 		# game = GameAssist(board=Field(filename=None), players=players)
-		game = Field(filename=None, players=players)
+		game.players = players
+
 		if args.term:
 			game.start_terminal()
 		else:
