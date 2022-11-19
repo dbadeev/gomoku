@@ -136,7 +136,7 @@ class Field:
           y coordinate of intersection (x, y) on the board
         :return True if intersection (x, y) is empty, False otherwise
         """
-        return self.board[x][y] == 0
+        return self.board[x, y] == 0
 
     def empty_two_in_a_row(self, x: int, y: int, dx: int, dy: int) -> bool:
         """
@@ -154,7 +154,7 @@ class Field:
         :return True if two intersections in a raw of the board in
         the direction (dx, dy) from (x, y) are empty
         """
-        return self.board[x][y] == 0 and self.board[x + dx][y + dy] == 0
+        return self.board[x, y] == 0 and self.board[x + dx, y + dy] == 0
 
     def in_borders(self, x: int, y: int) -> bool:
         """
@@ -183,7 +183,7 @@ class Field:
             Player's color (1 - 'X' == white; 2 - 'O' == black)
         :return: True if color stone is at (x, y) in board, else False
         """
-        return self.board[x][y] == color
+        return self.board[x, y] == color
 
     def place_stone(self, x: int, y: int, color: int) -> None:
         """
@@ -196,7 +196,7 @@ class Field:
         :param color: int
             Player's color (1 - 'X' == white; 2 - 'O' == black)
         """
-        self.board[x][y] = color
+        self.board[x, y] = color
         return
 
     def remove_stone(self, x: int, y: int) -> None:
@@ -209,7 +209,7 @@ class Field:
         :param y: int
             y coordinate of intersection (x, y) on the board
         """
-        self.board[x][y] = 0
+        self.board[x, y] = 0
         return
 
     def is_board_empty(self) -> bool:
@@ -420,7 +420,7 @@ class Field:
         player.five_in_a_row_prev = five_in_a_row_prev
         self.cnt_player = 1 - self.cnt_player
 
-
+    # Методы для AI игрока
     def get_unfilled_fields(self) -> List[Tuple[int, int]]:
         return np.argwhere(self.board == self.empty_color)
 
@@ -895,8 +895,6 @@ class Rules:
             else:
                 player.five_in_a_row_prev = False
         return None
-
-
 
 # @staticmethod
 # def check_winner_basic(board, players):

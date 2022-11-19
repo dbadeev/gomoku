@@ -9,7 +9,6 @@ from multiprocessing import Pool
 from typing import Tuple, Union, Optional
 
 
-
 def unbounded_line_len_based_heuristic(board: Field, player_char: str) -> np.float:
     power_foundation = 19
 
@@ -100,7 +99,8 @@ class SlidingWindowHeuristicBase:  # TODO отсюда надо просто н�
 
         return scores_in_original
 
-    def calculate_score_for_position(self, board: Field, prev_calc_values: Optional[dict] = None) -> Tuple[np.float, dict]:
+    def calculate_score_for_position(self, board: Field, prev_calc_values: Optional[dict] = None) -> Tuple[
+        np.float, dict]:
         lines = np.concatenate([
             board.board[self.straight_line_indices_0, self.straight_line_indices_1],
             board.board[self.straight_line_indices_1, self.straight_line_indices_0],
