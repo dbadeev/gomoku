@@ -75,6 +75,7 @@ class HumanPlayer(Player):
 
 
 class GomokuAIPlayer(Player):
+    timed = False
     def pregame_init(self, board: Field):
         self.G = nx.DiGraph()
         self.h = SimpleSumHeuristic(board.size, self.color, self.opponent_color, board.empty_color)
@@ -83,7 +84,8 @@ class GomokuAIPlayer(Player):
 
         self.possible_positions_cache = {}
 
-        self.thread_event = threading.Event()
+        if self.timed:
+            self.thread_event = threading.Event()
 
     @staticmethod
     def can_get_even_better_for_me(current_best, is_my_move):
@@ -182,7 +184,7 @@ class GomokuAIPlayer(Player):
                                                'score', 0))
 
         for i, next_position in enumerate(sorted_by_score_positions):
-            if i > 0 and self.thread_event.is_set():
+            if i > 0 and self.timed and self.thread_event.is_set():
                 break
             # TODO: добавить обработку capture (мб есть у Димы)
 
@@ -230,7 +232,8 @@ class GomokuAIPlayer(Player):
     def get_move_with_time_limit(self, current_position: Field, time_limit_seconds: float):
         self.my_move_idx += 1
 
-        threading.Thread(target=self.set_events_after_n_seconds(time_limit_seconds)).start()
+        if self.timed:
+            threading.Thread(target=self.set_events_after_n_seconds(time_limit_seconds)).start()
 
         print(f'my_move_idx={self.my_move_idx}, len={len(self.G.nodes)}')
 
