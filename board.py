@@ -388,7 +388,7 @@ class Field:
             #     move = self.notation.get_move()
             #     print(f"Player {player.color}: {move[0] + 1, move[1] + 1}")
 
-            move = player.get_move()
+            move = player.get_move(self)
             if len(move) == 0:
                 return None
             self.place_on_board(move)
