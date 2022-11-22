@@ -1,12 +1,14 @@
 import numpy as np
 
+from player.base_player import Player
+
 # ГЛОБАЛЬНЫЕ КОНСТАНТЫ ###
 # направляющие в точке [0, 0] (вниз, по диагонали вверх, вправо, по диагонали
 # вниз)
 REPERS = np.array([[1, 0], [-1, 1], [0, 1], [1, 1]])
 
 
-def get_player(player_type: str):
+def get_player(player_type: str) -> type(Player):
     if player_type == 'human':
         from player.human_player import HumanPlayer
         return HumanPlayer
