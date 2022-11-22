@@ -7,6 +7,8 @@ from board.board import Field
 from .canvas import Canvas
 from .ui import UI
 from .lib import BACKGROUND_COLOR, SIZE
+from player.human_player import HumanPlayer
+from player.ai_player import GomokuAIPlayer
 
 
 # класс отрисовки
@@ -83,12 +85,14 @@ class Movie(object):
 		# 		self.root.after(1, self.update_logic)
 		# 		return
 		# 	move = self.move[::-1]
-
-		self.playerInput = True
-		if self.move is None:
-			self.root.after(1, self.update_logic)
-			return
-		move = self.move[::-1]
+		if isinstance(player, GomokuAIPlayer):
+			move = player.get_move(self.Field)
+		elif isinstance(player, HumanPlayer):
+			self.playerInput = True
+			if self.move is None:
+				self.root.after(1, self.update_logic)
+				return
+			move = self.move[::-1]
 
 		# если скорость работы бота медленнее лимита то противоположный игрок выйграл
 		# self.timers[cnt_player] = round(time.time() - self.begins[cnt_player])
