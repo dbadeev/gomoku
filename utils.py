@@ -20,3 +20,7 @@ def move_point(p: Tuple[int, int], direction: int, steps=1) -> Tuple[int, int]:
         return p[0], p[1] - steps
     elif direction == 7:
         return p[0] - steps, p[1] - steps
+
+
+class EmptyException(Exception):
+    pass

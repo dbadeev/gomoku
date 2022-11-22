@@ -1,20 +1,20 @@
 import numpy as np
-from player import Player, HumanPlayer, GomokuAIPlayer
 
 # ГЛОБАЛЬНЫЕ КОНСТАНТЫ ###
 # направляющие в точке [0, 0] (вниз, по диагонали вверх, вправо, по диагонали
 # вниз)
 REPERS = np.array([[1, 0], [-1, 1], [0, 1], [1, 1]])
 
-COMPETITORS = {
-    "human": HumanPlayer,
-    "AI": GomokuAIPlayer
-    # "minimax": minimax_agent_wrapper("minimax"),
-    # "alpha_beta": minimax_agent_wrapper("alpha_beta"),
-    # "alpha_beta_memory": minimax_agent_wrapper("alpha_beta_memory"),
-    # "alpha_beta_basic": minimax_agent_wrapper("alpha_beta_basic"),
-    # "mtdf": minimax_agent_wrapper("mtdf"),
-}
+
+def get_player(player_type: str):
+    if player_type == 'human':
+        from player.human_player import HumanPlayer
+        return HumanPlayer
+    elif player_type == 'AI':
+        from player.ai_player import GomokuAIPlayer
+        return GomokuAIPlayer
+    else:
+        raise ValueError(f'Unknown player type: {player_type}')
 
 # ГРАФИКА #############
 # ширина окна

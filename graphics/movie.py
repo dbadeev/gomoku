@@ -3,7 +3,7 @@ import tkinter as tk
 
 # from agent import Agent
 # from game_assist import GameAssist
-from board import Field
+from board.board import Field
 from .canvas import Canvas
 from .ui import UI
 from .lib import BACKGROUND_COLOR, SIZE

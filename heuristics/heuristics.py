@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 from itertools import product
 
-from board import Field
+from board.board import Field
 
 from multiprocessing import Pool
 from typing import Tuple, Union, Optional

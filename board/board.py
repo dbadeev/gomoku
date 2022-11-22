@@ -9,6 +9,7 @@ from messages import Messages as Say
 from typing import List, Tuple, Optional, Iterable
 from numpy import ndarray
 
+from player.base_player import Player
 from utils import move_point, n_directions
 
 REPERS = np.array([[1, 0], [-1, 1], [0, 1], [1, 1]])
@@ -76,7 +77,7 @@ class Field:
         for i in range(self.size):
             term_movie += f"{(i + 1):3} "
             for j in range(self.size):
-                c = self.board[i][j]
+                c = self.board[i, j]
                 if j in [3, 9, 15] and i in [3, 9, 15] and c == 0:
                     term_movie += f"{'*':>2} "
                 else:
@@ -87,6 +88,12 @@ class Field:
         term_movie += f"X: {self.players[0].captures} stone captured\n"
         term_movie += f"O: {self.players[1].captures} stone captured\n"
         return term_movie
+
+    def make_board_readonly(self):
+        self.board.flags.writeable = False
+
+    def make_board_writable(self):
+        self.board.flags.writeable = True
 
     def generate_hash(self):
         return hash(self.board.tobytes())
@@ -102,13 +109,16 @@ class Field:
         return other.__hash__() == self.__hash__()
 
     def copy(self) -> Field:
+        # TODO: реализовать свою deepcopy, чтобы быстро было
         return deepcopy(self)
 
     def inplace_or_copy_decorator(func):
         def wrapped(self, *args, inplace=True, **kwargs) -> None or Field:
             if inplace is False:
                 self_copy = self.copy()
+                self_copy.make_board_writable()
                 getattr(self_copy, func.__name__)(*args, **kwargs)
+                self_copy.make_board_readonly()
                 return self_copy
             else:
                 func(self, *args, **kwargs)
@@ -400,6 +410,7 @@ class Field:
         # 	time.sleep(0.25)
         return None
 
+    @inplace_or_copy_decorator
     def undo_move(self) -> None:
         """
         Update board and game parameter after undoing move
@@ -407,7 +418,7 @@ class Field:
         x, y = self.move_history.pop()
         previous_dead = self.capture_history.pop()
         last_move, captures, five_in_a_row_prev = self.state_history.pop()
-        stone = self.board[x][y]
+        stone = self.board[x, y]
         player = self.players[0 if stone == 1 else 1]
         opponent = self.players[1 if stone == 1 else 0]
         self.remove_stone(x, y)

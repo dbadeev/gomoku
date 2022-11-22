@@ -3,11 +3,12 @@ import sys
 
 from globals import *
 from messages import Messages
-from board import Field
+from board.board import Field
 # from rules import Rules
 # from game_assist import GameAssist
 
 from graphics import Movie
+from utils import EmptyException
 
 
 def parse_args() -> argparse.Namespace:
@@ -67,30 +68,29 @@ def parse_args() -> argparse.Namespace:
 	# """
 
 
-def main():
+def main(debug=False):
 	"""
 	Main gomoku program
 	"""
+	exceptions_to_catch = EmptyException if debug else Exception
 	try:
 		args = parse_args()
 		# validate_args(args)
 		# С разными вариантами Player-ов нужно будет переделать,
 		# пока заглушка
 		game = Field(filename=None, players=[])
-		players = [COMPETITORS[args.p1](1, 2, game), COMPETITORS[args.p2](2, 1, game)]
-		# players = [args.p1, args.p2]
-		# game = GameAssist(board=Field(filename=None), players=players)
+		players = [get_player(args.p1)(1, 2, game), get_player(args.p2)(2, 1, game)]
 		game.players = players
 
-		if args.term:
+		if args.term or debug:
 			game.start_terminal()
 		else:
 			Movie(game)
 
-	except Exception as e:
+	except exceptions_to_catch as e:
 		Messages(e.__doc__).error_()
 		sys.exit(0)
 
 
 if __name__ == "__main__":
-	main()
+	main(False)
