@@ -96,7 +96,7 @@ class Field:
         self.board.flags.writeable = True
 
     def generate_hash(self):
-        return hash(self.board.tobytes())
+        return hash(self.board.tobytes() + ''.join(map(lambda x: str(x.captures), self.players)).encode('utf-8'))
 
     def __hash__(self):
         if self.hash is None:

@@ -7,6 +7,8 @@ import numpy as np
 from board.board import Field
 from heuristics.heuristics import SimpleSumHeuristic
 
+calculation_depth = 2
+
 
 class AIEngine:
     def __init__(self, board_size: int, empty_color: int, color: int, opponent_color: int, timed=False):
@@ -66,7 +68,7 @@ class AIEngine:
                     continue
                 result.add(neig_2)
 
-        center_square_len = 16 if position.size % 2 else 9
+        center_square_len = 9 if position.size % 2 else 16
 
         unfilled_sorted_from_center = self.sort_possible_moves(position.get_unfilled_fields(), position)
         result.update([tuple(p) for i, p in enumerate(unfilled_sorted_from_center) if
@@ -82,8 +84,8 @@ class AIEngine:
 
     def generate_next_moves(self, current_position: Field, is_my_move: bool, go_n_more_layers: int,
                             my_move_idx: int, heuristic_cache=None):
-        if (winner := current_position.winner) is not None:  # TODO: это тоже можно заменить на sliding эврситику с кэшем, быстрее будет
-            self.G.nodes[current_position]['score'] = np.inf if winner.color == self.color else -np.inf
+        if current_position.winner is not None:  # TODO: это тоже можно заменить на sliding эврситику с кэшем, быстрее будет
+            self.G.nodes[current_position]['score'] = np.inf if current_position.winner.color == self.color else -np.inf
             self.G.nodes[current_position]['heuristic_cache'] = None
             self.G.nodes[current_position]['steps_to_end'] = 0
             self.G.nodes[current_position]['game_over'] = True
@@ -113,10 +115,12 @@ class AIEngine:
 
         successor_positions = []
         for move in possible_moves:
-            next_position = current_position.copy()
-            if next_position.place_on_board(move):
-                successor_positions.append(next_position)
-        # successor_positions = [current_position.place_on_board((m[0], m[1]), inplace=False) for m in possible_moves]
+            possible_position = current_position.copy()
+            possible_position.make_board_writable()
+            if possible_position.place_on_board(move):
+                possible_position.make_board_readonly()
+                possible_position.hash = None
+                successor_positions.append(possible_position)
 
         sorted_by_score_positions = sorted(successor_positions,
                                            key=lambda x: (-1 if is_my_move else 1) * self.G.nodes.get(x, {}).get(
@@ -124,6 +128,7 @@ class AIEngine:
 
         for i, next_position in enumerate(sorted_by_score_positions):
             if i > 0 and self.timed and self.thread_event.is_set():
+                print('time break')
                 break
 
             if not self.G.has_node(next_position):
@@ -137,6 +142,9 @@ class AIEngine:
                 if go_n_more_layers == 1 and heuristic_cache is None:  # после подсчета эвристики на первой ноде запоминаем ее кэш и передаем в следующий generate_next_moves
                     heuristic_cache = self.G.nodes[next_position]['heuristic_cache']
 
+            if not self.G.has_node(current_position) or not self.G.has_node(next_position):
+                print('FUCK', self.G.has_node(current_position), self.G.has_node(next_position))
+                exit(1)
             self.G.edges[current_position, next_position]['score'] = self.G.nodes[next_position]['score']
 
             if self.G.nodes[current_position].get('best_outcome', None) is None or \
@@ -175,9 +183,10 @@ def start(board: Field, my_color: int, opponent_color: int, timed=False) -> int:
 
 
 def set_current_position(engine_idx: int, position: Field, my_move_idx: int, move_color: int):
+    global _engines
     time_limit_seconds = 5
 
-    if position not in _engines[engine_idx].G:
+    if not _engines[engine_idx].G.has_node(position):
         # print(f'not in G, adding (len={len(_engines[engine_idx].G.nodes)})')
         _engines[engine_idx].G.add_node(position, move_char=move_color)
 
@@ -187,8 +196,9 @@ def set_current_position(engine_idx: int, position: Field, my_move_idx: int, mov
         threading.Thread(target=_engines[engine_idx].set_events_after_n_seconds(time_limit_seconds)).start()
 
     _engines[engine_idx].current_move_idx += 1
-    _engines[engine_idx].generate_next_moves(position, True, 2, my_move_idx)
+    _engines[engine_idx].generate_next_moves(position, True, calculation_depth, my_move_idx)
 
 
 def get_graph(engine_idx: int) -> nx.DiGraph:
+    global _engines
     return _engines[engine_idx].G

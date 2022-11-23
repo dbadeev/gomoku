@@ -1,4 +1,3 @@
-import threading
 from typing import Tuple
 
 import numpy as np
@@ -22,7 +21,7 @@ class GomokuAIPlayer(Player):
         current_position_copy = current_position.copy()
         current_position_copy.make_board_readonly()
 
-        ai_engine.set_current_position(self.engine_idx, current_position, self.my_move_idx, self.color)
+        ai_engine.set_current_position(self.engine_idx, current_position_copy, self.my_move_idx, self.color)
 
         graph = ai_engine.get_graph(self.engine_idx)
         neigs = graph.successors(current_position_copy)
