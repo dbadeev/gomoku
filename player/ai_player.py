@@ -14,7 +14,7 @@ class GomokuAIPlayer(Player):
     def pregame_init(self, board: Field):
         self.my_move_idx = 0
 
-        ai_engine.start(board, self.color, self.opponent_color, timed=False)
+        self.engine_idx = ai_engine.start(board, self.color, self.opponent_color, timed=False)
 
     def get_move(self, current_position: Field) -> Tuple[int, int]:
         self.my_move_idx += 1
@@ -22,9 +22,9 @@ class GomokuAIPlayer(Player):
         current_position_copy = current_position.copy()
         current_position_copy.make_board_readonly()
 
-        ai_engine.set_current_position(current_position, self.my_move_idx, self.color)
+        ai_engine.set_current_position(self.engine_idx, current_position, self.my_move_idx, self.color)
 
-        graph = ai_engine.get_graph()
+        graph = ai_engine.get_graph(self.engine_idx)
         neigs = graph.successors(current_position_copy)
         next_positions, scores, steps_to_end = list(zip(*([(
             x,

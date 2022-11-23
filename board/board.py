@@ -377,7 +377,7 @@ class Field:
         if self.winner is None:
             self.winner = Rules.check_winner(self, self.players)
 
-        print(self)
+        # print(self)
         return True
 
     def start_terminal(self) -> None:

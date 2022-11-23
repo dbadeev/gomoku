@@ -163,31 +163,32 @@ class AIEngine:
             self.thread_event.set()
 
 
-_engine_instance: AIEngine = None
+_engines: dict[int, AIEngine] = {}
 
 
-def start(board: Field, my_color: int, opponent_color: int, timed=False):
-    global _engine_instance
+def start(board: Field, my_color: int, opponent_color: int, timed=False) -> int:
+    global _engines
 
-    if _engine_instance is None:
-        _engine_instance = AIEngine(board.size, board.empty_color, my_color, opponent_color, timed=timed)
+    new_engine_idx = len(_engines) + 1
+    _engines[new_engine_idx] = AIEngine(board.size, board.empty_color, my_color, opponent_color, timed=timed)
+    return new_engine_idx
 
 
-def set_current_position(position: Field, my_move_idx: int, move_color: int):
+def set_current_position(engine_idx: int, position: Field, my_move_idx: int, move_color: int):
     time_limit_seconds = 5
 
-    if position not in _engine_instance.G:
-        print(f'not in G, adding (len={len(_engine_instance.G.nodes)})')
-        _engine_instance.G.add_node(position, move_char=move_color)
+    if position not in _engines[engine_idx].G:
+        # print(f'not in G, adding (len={len(_engines[engine_idx].G.nodes)})')
+        _engines[engine_idx].G.add_node(position, move_char=move_color)
 
-    nx.set_node_attributes(_engine_instance.G, None, 'best_outcome')
+    nx.set_node_attributes(_engines[engine_idx].G, None, 'best_outcome')
 
-    if _engine_instance.timed:
-        threading.Thread(target=_engine_instance.set_events_after_n_seconds(time_limit_seconds)).start()
+    if _engines[engine_idx].timed:
+        threading.Thread(target=_engines[engine_idx].set_events_after_n_seconds(time_limit_seconds)).start()
 
-    _engine_instance.current_move_idx += 1
-    _engine_instance.generate_next_moves(position, True, 2, my_move_idx)
+    _engines[engine_idx].current_move_idx += 1
+    _engines[engine_idx].generate_next_moves(position, True, 2, my_move_idx)
 
 
-def get_graph() -> nx.DiGraph:
-    return _engine_instance.G
+def get_graph(engine_idx: int) -> nx.DiGraph:
+    return _engines[engine_idx].G
