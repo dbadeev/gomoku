@@ -44,8 +44,12 @@ class AIEngine:
             return new_score < pred_best
 
     @staticmethod
+    def get_l1_distance_from_board_center(board: Field, p: tuple[int, int]):
+        return np.abs(np.array(p) - board.board_half).sum()
+
+    @staticmethod
     def sort_possible_moves(moves, position: Field):
-        return sorted(moves, key=lambda x: np.abs(np.array(x) - position.board_half).sum())
+        return sorted(moves, key=lambda x: AIEngine.get_l1_distance_from_board_center(position, x))
 
     def get_possible_moves_from_position(self, position: Field, my_move_idx: int):
         return self.generate_possible_moves_from_position(position, my_move_idx)
@@ -62,24 +66,24 @@ class AIEngine:
                     continue
                 result.add(neig_2)
 
-        center_square_len = (position.size % 2 + 1) ** 2
-        unfilled = position.get_unfilled_fields()
-        result.update([tuple(p) for i, p in enumerate(position.get_unfilled_fields()) if
-                       (position.has_neighbours(p) or (
-                               (my_move_idx < check_center_first_n_moves) and (i < center_square_len)))])
+        center_square_len = 16 if position.size % 2 else 9
 
-        result = self.sort_possible_moves(result, position)
+        unfilled_sorted_from_center = self.sort_possible_moves(position.get_unfilled_fields(), position)
+        result.update([tuple(p) for i, p in enumerate(unfilled_sorted_from_center) if
+                       (position.has_neighbours(p) or (
+                               (my_move_idx < check_center_first_n_moves) and
+                               (i < center_square_len)))])
+
         if len(result) > 0:
             return result
         else:
-            return_n_unfilled = min(center_square_len, len(unfilled))
-            return unfilled[:return_n_unfilled]
+            return_n_unfilled = min(center_square_len, len(unfilled_sorted_from_center))
+            return unfilled_sorted_from_center[:return_n_unfilled]
 
     def generate_next_moves(self, current_position: Field, is_my_move: bool, go_n_more_layers: int,
                             my_move_idx: int, heuristic_cache=None):
-        if (
-                result := current_position.is_game_finished()) is not None:  # TODO: это тоже можно заменить на sliding эврситику с кэшем, быстрее будет
-            self.G.nodes[current_position]['score'] = np.inf if result == self.color else -np.inf
+        if (winner := current_position.winner) is not None:  # TODO: это тоже можно заменить на sliding эврситику с кэшем, быстрее будет
+            self.G.nodes[current_position]['score'] = np.inf if winner.color == self.color else -np.inf
             self.G.nodes[current_position]['heuristic_cache'] = None
             self.G.nodes[current_position]['steps_to_end'] = 0
             self.G.nodes[current_position]['game_over'] = True
@@ -107,7 +111,12 @@ class AIEngine:
             self.G.nodes[current_position]['steps_to_end'] = 0
             return
 
-        successor_positions = [current_position.make_move((m[0], m[1]), inplace=False) for m in possible_moves]
+        successor_positions = []
+        for move in possible_moves:
+            next_position = current_position.copy()
+            if next_position.place_on_board(move):
+                successor_positions.append(next_position)
+        # successor_positions = [current_position.place_on_board((m[0], m[1]), inplace=False) for m in possible_moves]
 
         sorted_by_score_positions = sorted(successor_positions,
                                            key=lambda x: (-1 if is_my_move else 1) * self.G.nodes.get(x, {}).get(
