@@ -68,7 +68,7 @@ class Movie(object):
 			return
 
 		# выбор AI
-		self.Field.begin = time.time()
+		# self.Field.begin = time.time()
 		cnt_player = self.Field.cnt_player
 		player = self.Field.players[cnt_player]
 		# is_notation = self.Field.notation and self.Field.notation.running()
@@ -86,13 +86,18 @@ class Movie(object):
 		# 		return
 		# 	move = self.move[::-1]
 		if isinstance(player, GomokuAIPlayer):
+			self.Field.begin = time.time()
 			move = player.get_move(self.Field)
+			self.timers[cnt_player] = round(time.time() - self.Field.begin, 2)
 		elif isinstance(player, HumanPlayer):
+			self.Field.begin = time.time()
 			self.playerInput = True
 			if self.move is None:
 				self.root.after(1, self.update_logic)
 				return
+			# self.Field.begin = time.time()
 			move = self.move[::-1]
+			self.timers[cnt_player] = round(time.time() - self.Field.begin, 3)
 
 		# если скорость работы бота медленнее лимита то противоположный игрок выйграл
 		# self.timers[cnt_player] = round(time.time() - self.begins[cnt_player])
@@ -147,7 +152,7 @@ class Movie(object):
 		# незаконные ходы
 		self.illegal_moves = []
 		# тайминги
-		self.begins = [time.time(), time.time()]
+		# self.begins = [time.time(), time.time()]
 		self.timers = [0, 0]
 
 		self.canvas.update_board(self.Field)
