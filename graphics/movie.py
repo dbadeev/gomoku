@@ -25,6 +25,7 @@ class Movie(object):
 		self.root.resizable(False, False)
 		self.root.configure(background=BACKGROUND_COLOR)
 
+		self.timers = [0, 0]
 		# подписки и инициализация ui скрипта
 		self.root.restartCallback = self.on_click_restart
 		self.root.helpCallback = self.on_click_help
@@ -89,18 +90,21 @@ class Movie(object):
 			self.Field.begin = time.time()
 			move = player.get_move(self.Field)
 			self.timers[cnt_player] = round(time.time() - self.Field.begin, 2)
-		elif isinstance(player, HumanPlayer):
 			self.Field.begin = time.time()
+		elif isinstance(player, HumanPlayer):
+			# self.Field.begin = time.time()
 			self.playerInput = True
 			if self.move is None:
 				self.root.after(1, self.update_logic)
 				return
 			# self.Field.begin = time.time()
 			move = self.move[::-1]
-			self.timers[cnt_player] = round(time.time() - self.Field.begin, 3)
+			if self.Field.begin < 0:
+				self.Field.begin = time.time()
+			self.timers[cnt_player] = round(time.time() - self.Field.begin, 2)
+			self.Field.begin = time.time()
 
 		# если скорость работы бота медленнее лимита то противоположный игрок выйграл
-		# self.timers[cnt_player] = round(time.time() - self.begins[cnt_player])
 		# if self.timers[cnt_player] > self.Field.time_limit:
 		# 	self.Field.winner = self.Field.players[1 - cnt_player]
 
@@ -122,7 +126,6 @@ class Movie(object):
 		self.move = None
 		self.illegal_moves = []
 		self.b_update = False
-		self.begins = [time.time(), time.time()]
 		self.over = self.Field.winner != None
 
 		# self.root.after(250 if is_notation else 1, self.update_logic)
@@ -152,7 +155,6 @@ class Movie(object):
 		# незаконные ходы
 		self.illegal_moves = []
 		# тайминги
-		# self.begins = [time.time(), time.time()]
 		self.timers = [0, 0]
 
 		self.canvas.update_board(self.Field)

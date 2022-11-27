@@ -39,6 +39,7 @@ class Field:
         self.abbr = abbr
         if board is None:
             board = np.zeros((size, size))
+        self.begin = -1
         self.board = board
         self.filename = filename
         self.size = size
