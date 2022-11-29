@@ -9,6 +9,7 @@ from board.board import Field
 
 from graphics import Movie
 from utils import EmptyException
+from ai_engine import ai_engine
 
 
 def parse_args() -> argparse.Namespace:
@@ -79,18 +80,24 @@ def main(debug=False):
 		# С разными вариантами Player-ов нужно будет переделать,
 		# пока заглушка
 		game = Field(filename=None, players=[])
-		players = [get_player(args.p1)(1, 2, game), get_player(args.p2)(2, 1, game)]
+		players = [get_player(args.p1, [1, 2, game]), get_player(args.p2, [2, 1, game])]
 		game.players = players
 
 		if args.term or debug:
 			game.start_terminal()
 		else:
 			Movie(game)
+		ai_engine.terminate_processes()
 
 	except exceptions_to_catch as e:
 		Messages(e.__doc__).error_()
+		ai_engine.terminate_processes()
 		sys.exit(0)
 
 
 if __name__ == "__main__":
-	main(False)
+	try:
+		main(False)
+	except KeyboardInterrupt:
+		ai_engine.terminate_processes()
+

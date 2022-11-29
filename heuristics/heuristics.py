@@ -9,23 +9,6 @@ from multiprocessing import Pool
 from typing import Tuple, Union, Optional
 
 
-def unbounded_line_len_based_heuristic(board: Field, player_char: str) -> np.float:
-    power_foundation = 19
-
-    score = 0
-    conv_lens = [5, 4, 3, 2, 1]
-    for char_idx in np.argwhere(board.board == player_char):
-        for conv_len in conv_lens:
-            if board.is_line_of_n(char_idx, conv_len, unbounded_required=conv_lens != 5):
-                if conv_len == 5:
-                    return np.inf
-                else:
-                    score += power_foundation ** conv_len
-        score += (board.size - np.abs(np.array(
-            char_idx) - board.board_half).sum())  # eще немного добавляем в зависимости от удаленности от центра
-    return score
-
-
 def calculate_score_for_line(line: np.ndarray, my_char, opponent_char) -> np.float:
     power_foundation = 19
 
@@ -44,8 +27,8 @@ def calculate_score_for_line(line: np.ndarray, my_char, opponent_char) -> np.flo
     return 0
 
 
-class SlidingWindowHeuristicBase:  # TODO отсюда надо просто наследовать разные классы, по-разному реализуя calculate_score_for_line и давать играть друг с другом
-    win_line_len = 5
+class SlidingWindowHeuristicBase:  # отсюда надо просто наследовать разные классы, по-разному реализуя calculate_score_for_line и давать играть друг с другом
+    line_len_to_analyze = 5
     power_foundation = 19
 
     def __init__(self, board_size, my_char, opponent_char, empty_char):
@@ -55,18 +38,18 @@ class SlidingWindowHeuristicBase:  # TODO отсюда надо просто н�
         self.opponent_char = opponent_char
         self.empty_char = empty_char
 
-        self.window_path_len = self.board_size - self.win_line_len + 1
+        self.window_path_len = self.board_size - self.line_len_to_analyze + 1
 
-        self.horizontal_lines_indices = [np.arange(self.win_line_len) + i for i in range(self.window_path_len)]
-        self.vertical_lines_indices = [np.arange(self.win_line_len) + i for i in range(self.window_path_len)]
+        self.horizontal_lines_indices = [np.arange(self.line_len_to_analyze) + i for i in range(self.window_path_len)]
+        self.vertical_lines_indices = [np.arange(self.line_len_to_analyze) + i for i in range(self.window_path_len)]
 
-        self.straight_line_indices_0 = [np.arange(self.win_line_len) + i for i in
+        self.straight_line_indices_0 = [np.arange(self.line_len_to_analyze) + i for i in
                                         range(self.window_path_len)] * self.board_size
         self.straight_line_indices_1 = np.concatenate(
             [np.ones((self.window_path_len,)) * i for i in range(board_size)]).astype(int)[:, np.newaxis]
 
-        diags = [np.arange(self.win_line_len) + i for i in range(self.window_path_len)]
-        inv_diags = [np.flip(np.arange(self.win_line_len)) + i for i in range(self.window_path_len)]
+        diags = [np.arange(self.line_len_to_analyze) + i for i in range(self.window_path_len)]
+        inv_diags = [np.flip(np.arange(self.line_len_to_analyze)) + i for i in range(self.window_path_len)]
 
         self.diag_indices_0, self.diag_indices_1 = [list(x) for x in zip(*list(product(diags, diags + inv_diags)))]
 
@@ -99,8 +82,7 @@ class SlidingWindowHeuristicBase:  # TODO отсюда надо просто н�
 
         return scores_in_original
 
-    def calculate_score_for_position(self, board: Field, prev_calc_values: Optional[dict] = None) -> Tuple[
-        np.float, dict]:
+    def calculate_score_for_position(self, board: Field) -> Tuple[np.float, dict]:
         lines = np.concatenate([
             board.board[self.straight_line_indices_0, self.straight_line_indices_1],
             board.board[self.straight_line_indices_1, self.straight_line_indices_0],
@@ -108,19 +90,13 @@ class SlidingWindowHeuristicBase:  # TODO отсюда надо просто н�
             board.board[self.diag_indices_1, self.diag_indices_0],
         ])
 
-        if prev_calc_values is None:
-            score_for_lines = self.lines_to_scores(lines)
-        else:
-            changed_lines_mask = (lines != prev_calc_values['lines']).any(axis=1)
-            scores_in_original = self.lines_to_scores(lines[changed_lines_mask])
-            score_for_lines = prev_calc_values['score_for_lines'].copy()
-            score_for_lines[changed_lines_mask] = scores_in_original
+        score_for_lines = self.lines_to_scores(lines)
 
         result = score_for_lines.sum()
-        return result, {'lines': lines, 'score_for_lines': score_for_lines}
+        return result
 
-    def __call__(self, board: Field, prev_calc_values: Optional[dict] = None) -> Tuple[np.float, dict]:
-        return self.calculate_score_for_position(board, prev_calc_values)
+    def __call__(self, board: Field) -> Tuple[np.float, dict]:
+        return self.calculate_score_for_position(board)
 
 
 class SimpleSumHeuristic(SlidingWindowHeuristicBase):
@@ -164,3 +140,9 @@ class LittleMoreSophisticatedHeuristic(SlidingWindowHeuristicBase):
             count = 4
 
         return flag * (self.power_foundation ** count)
+
+
+HEURISTICS = {
+    'l1': SimpleSumHeuristic,
+    'l2': LittleMoreSophisticatedHeuristic
+}

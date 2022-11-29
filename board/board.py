@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from hashlib import md5
+
 from globals import *
 from copy import copy, deepcopy
 import numpy as np
@@ -96,7 +98,9 @@ class Field:
         self.board.flags.writeable = True
 
     def generate_hash(self):
-        return hash(self.board.tobytes() + ''.join(map(lambda x: str(x.captures), self.players)).encode('utf-8'))
+        # return hash(self.board.tobytes() + ''.join(map(lambda x: str(x.captures), self.players)).encode('utf-8')) # TODO вернуть и протестить с captures
+        # return hash(self.board.tobytes())
+        return int(md5(self.board.tobytes()).hexdigest(), 16)
 
     def __hash__(self):
         if self.hash is None:
@@ -106,11 +110,14 @@ class Field:
     def __eq__(self, other):
         if not isinstance(other, Field):
             return False
-        return other.__hash__() == self.__hash__()
+        # return other.__hash__() == self.__hash__()
+        return (other.board == self.board).all()
 
     def copy(self) -> Field:
         # TODO: реализовать свою deepcopy, чтобы быстро было
-        return deepcopy(self)
+        cop = deepcopy(self)
+        cop.hash = None
+        return cop
 
     def inplace_or_copy_decorator(func):
         def wrapped(self, *args, inplace=True, **kwargs) -> None or Field:
@@ -348,7 +355,8 @@ class Field:
                                    player.captures,
                                    player.five_in_a_row_prev])
         self.place_stone(*move, player.color)
-        player.last_move = tuple(move)
+        move = tuple(move)
+        player.last_move = move
         self.move_history.append(move)
 
         # updating captures

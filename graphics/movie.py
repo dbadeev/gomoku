@@ -8,7 +8,7 @@ from .canvas import Canvas
 from .ui import UI
 from .lib import BACKGROUND_COLOR, SIZE
 from player.human_player import HumanPlayer
-from player.ai_player import GomokuAIPlayer
+from player.ai_player import AIPlayer
 
 
 # класс отрисовки
@@ -85,7 +85,7 @@ class Movie(object):
 		# 		self.root.after(1, self.update_logic)
 		# 		return
 		# 	move = self.move[::-1]
-		if isinstance(player, GomokuAIPlayer):
+		if isinstance(player, AIPlayer):
 			self.Field.begin = time.time()
 			move = player.get_move(self.Field)
 			self.timers[cnt_player] = round(time.time() - self.Field.begin, 2)

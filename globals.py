@@ -8,13 +8,19 @@ from player.base_player import Player
 REPERS = np.array([[1, 0], [-1, 1], [0, 1], [1, 1]])
 
 
-def get_player(player_type: str) -> type(Player):
+def get_player(player_type: str, init_args: list) -> type(Player):
     if player_type == 'human':
         from player.human_player import HumanPlayer
-        return HumanPlayer
+        return HumanPlayer(*init_args)
     elif player_type == 'AI':
-        from player.ai_player import GomokuAIPlayer
-        return GomokuAIPlayer
+        from player.ai_player import AIPlayer
+        return AIPlayer(*init_args)
+    elif player_type == 'AI-l1':
+        from player.ai_player import AIPlayer
+        return AIPlayer(*init_args, heuristic_name='l1')
+    elif player_type == 'AI-l2':
+        from player.ai_player import AIPlayer
+        return AIPlayer(*init_args, heuristic_name='l2')
     else:
         raise ValueError(f'Unknown player type: {player_type}')
 
