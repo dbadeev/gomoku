@@ -103,7 +103,6 @@ class AIEngine:
     def generate_next_moves(self, current_position: Field, is_my_move: bool, go_n_more_layers: int):
         if self.G.has_node(current_position) and \
                 self.G.nodes[current_position].get('processed_depth', -1) >= go_n_more_layers:
-            print('bingo!')
             return True
 
         if current_position.winner is not None:  # TODO: это тоже можно заменить на sliding эврситику с кэшем, быстрее будет
@@ -128,7 +127,6 @@ class AIEngine:
         if self.G.has_node(current_position) and self.G.nodes[current_position].get('processed_depth', -1) > 0 and \
                 not self.G.nodes[current_position].get('cutoff_performed', False):
             successor_positions = self.G.successors(current_position)
-            print('ringo!')
         else:
             possible_moves = self.get_possible_moves_from_position(current_position)
             if len(possible_moves) == 0:  # значит не осталось пустых полей
@@ -165,7 +163,6 @@ class AIEngine:
 
         for i, next_position in enumerate(sorted_by_score_positions):
             if i > 0 and self.stop_flag.value == 1:
-                print('time break', len(self.G.nodes))
                 return False
 
             if not self.G.has_node(next_position):

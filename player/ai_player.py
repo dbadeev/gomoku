@@ -38,5 +38,4 @@ class AIPlayer(Player):
         move = graph.edges[current_position_copy, best_next_position]['move']
 
         ai_engine.get_portal(self.engine_idx).set_my_move(best_next_position)
-        print('result:', move)
         return move
