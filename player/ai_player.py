@@ -20,21 +20,25 @@ class AIPlayer(Player):
         current_position_copy.make_board_readonly()
 
         graph = ai_engine.get_portal(self.engine_idx).get_graph(current_position_copy, True)
+        print('got graph', str(graph), flush=True)
 
         successors = graph.successors(current_position_copy)
-        next_positions, scores, steps_to_end = list(zip(*([(
-            x,
-            graph.nodes[x]['score'],
-            graph.nodes[x]['steps_to_end'],
-        ) for x in successors if ('score' in graph.nodes[x] and graph.nodes[x]['score'] is not None)])))
+        try:
+            next_positions, scores, steps_to_end = list(zip(*([(
+                x,
+                graph.nodes[x]['score'],
+                graph.nodes[x]['steps_to_end'],
+            ) for x in successors if (graph.nodes[x].get('score', None) is not None)])))
 
-        scores = np.array(scores)
-        steps_to_end = np.array(steps_to_end)
+            scores = np.array(scores)
+            steps_to_end = np.array(steps_to_end)
 
-        best_score_next_positions_indices = np.argwhere(scores == np.max(scores)).reshape((-1,))
-        min_path_idx = np.argmin(steps_to_end[best_score_next_positions_indices])
-        best_next_position_idx = best_score_next_positions_indices[min_path_idx]
-        best_next_position = next_positions[best_next_position_idx]
+            best_score_next_positions_indices = np.argwhere(scores == np.max(scores)).reshape((-1,))
+            min_path_idx = np.argmin(steps_to_end[best_score_next_positions_indices])
+            best_next_position_idx = best_score_next_positions_indices[min_path_idx]
+            best_next_position = next_positions[best_next_position_idx]
+        except ValueError:
+            best_next_position = successors[np.argmax([graph.nodes[x]['h'] for x in successors])]
         move = graph.edges[current_position_copy, best_next_position]['move']
 
         ai_engine.get_portal(self.engine_idx).set_my_move(best_next_position)

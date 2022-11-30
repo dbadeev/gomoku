@@ -60,10 +60,15 @@ class AIEngine:
         return sorted(moves, key=lambda x: AIEngine.get_l1_distance_from_board_center(position, x))
 
     def find_or_calc_position_h(self, position: Field, calc_if_not_found=False, placeholder=0) -> float:
-        if self.G.has_node(position) and isinstance(self.G.nodes[position].get('score', None), float):
-            return self.G.nodes[position]['score']
+        if self.G.has_node(position) and isinstance(self.G.nodes[position].get('h', None), float):
+            return self.G.nodes[position]['h']
         elif calc_if_not_found:
-            return self.h(position)
+            if not self.G.has_node(position):
+                self.G.add_node(position)
+            h = self.h(position)
+            self.G.nodes[position]['h'] = h
+            return h
+
         else:
             return placeholder
 
@@ -118,19 +123,22 @@ class AIEngine:
             my_pred = None
 
         if go_n_more_layers == 0:
-            value = self.h(current_position)
+            value = self.find_or_calc_position_h(current_position, calc_if_not_found=True)
             self.G.nodes[current_position]['score'] = value
+            self.G.nodes[current_position]['h'] = value
             self.G.nodes[current_position]['steps_to_end'] = 0
             self.G.nodes[current_position]['processed_depth'] = 0
             return True
 
         if self.G.has_node(current_position) and self.G.nodes[current_position].get('processed_depth', -1) > 0 and \
-                not self.G.nodes[current_position].get('cutoff_performed', False):
+                self.G.nodes[current_position].get('cutoff_performed', False) is False:
             successor_positions = self.G.successors(current_position)
         else:
             possible_moves = self.get_possible_moves_from_position(current_position)
             if len(possible_moves) == 0:  # значит не осталось пустых полей
+                print('no more moves!!')
                 self.G.nodes[current_position]['score'] = 0
+                self.G.nodes[current_position]['h'] = 0
                 self.G.nodes[current_position]['steps_to_end'] = 0
                 self.G.nodes[current_position]['processed_depth'] = 0
                 return True
