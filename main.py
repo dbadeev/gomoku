@@ -46,6 +46,12 @@ def parse_args() -> argparse.Namespace:
 						default='AI',
 						help="Player2's behaviour should be in: "
 							 'human(default), minimax, alpha_beta, ...')
+	parser.add_argument('--log', '-l',
+						dest='log',
+						action="store_true",
+						default=False,
+						help='Show moves log at the end of the game ('
+							 'default=False)')
 	# parser.add_argument('--depth', '-d',
 	# 					dest='depth',
 	# 					type=int,
@@ -86,7 +92,7 @@ def main(debug=False):
 		if args.term or debug:
 			game.start_terminal()
 		else:
-			Movie(game)
+			Movie(game, args.log)
 		ai_engine.terminate_processes()
 
 	except exceptions_to_catch as e:

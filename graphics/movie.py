@@ -4,6 +4,7 @@ import tkinter as tk
 # from agent import Agent
 # from game_assist import GameAssist
 from board.board import Field
+from board.board import game_log
 from .canvas import Canvas
 from .ui import UI
 from .lib import BACKGROUND_COLOR, SIZE
@@ -13,10 +14,11 @@ from player.ai_player import AIPlayer
 
 # класс отрисовки
 class Movie(object):
-	def __init__(self, Field):
+	def __init__(self, Field, log):
 		# ссылка на все основные элементы игрового поля
 		# self.GameAssist = GameAssist
 		self.Field = Field
+		self.log = log
 
 		# подключение и настройка ткинтера
 		self.root = tk.Tk()
@@ -51,6 +53,9 @@ class Movie(object):
 		message = f"Turn {self.Field.turn}"
 		if self.Field.winner is not None:
 			message = f"P{self.Field.winner.color} won."
+			if self.log and self.over == 1:
+				game_log(self.Field)
+				self.over += 1
 		self.ui.update_info(self.Field.players, self.timers, message)
 		self.root.after(1000, self.update_labels)
 
@@ -126,7 +131,7 @@ class Movie(object):
 		self.move = None
 		self.illegal_moves = []
 		self.b_update = False
-		self.over = self.Field.winner != None
+		self.over = int(self.Field.winner != None)
 
 		# self.root.after(250 if is_notation else 1, self.update_logic)
 		self.root.after(1, self.update_logic)
@@ -149,7 +154,7 @@ class Movie(object):
 		# следующий ход?
 		self.b_update = False
 		# конец игры?
-		self.over = False
+		self.over = 0
 		# текущий ход
 		self.move = None
 		# незаконные ходы
