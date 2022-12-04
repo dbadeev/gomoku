@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from hashlib import md5
-
+import time
 from globals import *
 from copy import copy, deepcopy
 import numpy as np
@@ -37,7 +37,7 @@ class Field:
 	empty_color = 0
 
 	def __init__(self, players, filename: str = None, size: int = 19,
-				 abbr: dict = None, notation=None, time_limit=np.Inf,
+				 abbr: dict = None, notation=None, term_mode: bool=False,
 				 board: Optional[np.ndarray] = None) -> None:
 		if abbr is None:
 			abbr = {0: '.', 1: 'X', 2: 'O'}
@@ -50,7 +50,8 @@ class Field:
 		self.size = size
 		self.players = players
 		self.notation = notation
-		# self.time_limit = time_limit
+		self.term_mode = term_mode
+		self.timers = [0, 0]
 		# if filename:
 		#     self.parse(filename)
 
@@ -77,7 +78,7 @@ class Field:
 		:return term_movie: str
 			Game board as a string
 		"""
-		term_movie = f"\033[2J\033[Hᵪ\ʸ"
+		term_movie = f"\033[2J\033[Hᵪ\ʸ "
 		for i in range(self.size):
 			term_movie += f"{(i + 1):2} "
 		term_movie += "\n"
@@ -91,7 +92,10 @@ class Field:
 					term_movie += f"{self.abbr[c]:>2} "
 			term_movie += "\n"
 
-		term_movie += f"Turn: {self.turn}\n"
+		term_movie += f"\nTurn: {self.turn - 1}\n"
+		term_movie += f"Time used by " \
+					  f"{str(type(self.players[1 - self.cnt_player])).split('.')[-1][:-2]} is " \
+					  f"{self.timers[1 - self.cnt_player]}\n"
 		term_movie += f"X: {self.players[0].captures} stone captured\n"
 		term_movie += f"O: {self.players[1].captures} stone captured\n"
 		return term_movie
@@ -325,8 +329,9 @@ class Field:
 		  True if we can place the stone else False
 		"""
 		player = self.players[self.cnt_player]
-		if (x < 0 or x >= self.board.size or y < 0 or
-				y >= self.board.size or not self.is_empty(x, y)):
+		if self.term_mode and player.human and \
+				(x < 0 or x >= self.board.size or y < 0 or
+					y >= self.board.size or not self.is_empty(x, y)):
 			Say("Move Intersection must be empty (. or *)").error_()
 			return False
 
@@ -339,7 +344,8 @@ class Field:
 
 		if not Rules.no_double_free_threes(self, player):
 			self.remove_stone(x, y)
-			Say("No double free-threes allowed").error_()
+			if self.term_mode and player.human:
+				Say("No double free-threes allowed").error_()
 			return False
 		self.remove_stone(x, y)
 		return True
@@ -393,11 +399,12 @@ class Field:
 		# print(self)
 		return True
 
-	def start_terminal(self) -> None:
+	def start_terminal(self, log: bool) -> None:
 		"""
 		Main Function for Terminal mode, run the game
 		"""
-		print(self)
+		# print(self)
+		self.term_mode = True
 		while 1:
 			player = self.players[self.cnt_player]
 
@@ -410,13 +417,18 @@ class Field:
 			#     move = self.notation.get_move()
 			#     print(f"Player {player.color}: {move[0] + 1, move[1] + 1}")
 
+			self.begin = time.time()
 			move = player.get_move(self)
+			self.timers[self.cnt_player] = round(time.time() - self.begin, 2)
 			if len(move) == 0:
 				return None
-			self.place_on_board(move)
-			if self.winner:
+			if self.place_on_board(move):
 				print(self)
+			if self.winner:
+				# print(self)
 				print(f"P{self.winner.color} won.")
+				if log:
+					game_log(self)
 				return None
 
 		# if self.notation and self.notation.running():

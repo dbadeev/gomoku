@@ -87,10 +87,14 @@ def main(debug=False):
 		# пока заглушка
 		game = Field(filename=None, players=[])
 		players = [get_player(args.p1, [1, 2, game]), get_player(args.p2, [2, 1, game])]
+		if args.p1 == "human":
+			players[0].human = 1
+		if args.p2 == "human":
+			players[1].human = 1
 		game.players = players
 
 		if args.term or debug:
-			game.start_terminal()
+			game.start_terminal(args.log)
 		else:
 			Movie(game, args.log)
 		ai_engine.terminate_processes()

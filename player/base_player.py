@@ -23,6 +23,7 @@ class Player(ABC):
         self.color = color
         self.opponent_color = opponent_color
         self.last_move = (-2, -2)
+        self.human = 0
         # captured stones
         self.captures = 0
         self.five_in_a_row_prev = False

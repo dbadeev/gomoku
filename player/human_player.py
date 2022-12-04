@@ -5,6 +5,7 @@ from messages import Messages as say
 
 
 class HumanPlayer(Player):
+
     def get_move(self, position: Field) -> Tuple[int, int] or None:
         """
         Get move from Player in Terminal mode
