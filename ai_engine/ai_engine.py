@@ -252,10 +252,7 @@ class EnginePortal:
         self.out.send((position, is_my_move, True, calculation_depth))  # кладем текущую позицию на обсчет
 
         if self.time_limit_for_move is not None:
-            # if np.sum(position.board != position.empty_color) <= 4:
-            #     sleep(self.time_limit_for_move)  # ждем обсчет
-            # else:
-            #     print('start fucking', flush=True)
+            sleep(self.time_limit_for_move)  # ждем обсчет
             self.flag.value = 1  # останавливаем текущий обсчет
 
         graph: nx.DiGraph = self.out.recv()  # получаем обсчитанный граф
