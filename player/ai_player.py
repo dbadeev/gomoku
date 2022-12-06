@@ -1,5 +1,6 @@
 from typing import Tuple
 
+import joblib
 import numpy as np
 
 from ai_engine import ai_engine
@@ -20,9 +21,10 @@ class AIPlayer(Player):
         current_position_copy.make_board_readonly()
 
         graph = ai_engine.get_portal(self.engine_idx).get_graph(current_position_copy, True)
-        print('got graph', str(graph), flush=True)
+        # print('got graph', str(graph), flush=True)
 
-        successors = graph.successors(current_position_copy)
+        successors = list(graph.successors(current_position_copy))
+        # print('n successors =', len(successors), flush=True)
         try:
             next_positions, scores, steps_to_end = list(zip(*([(
                 x,
@@ -38,6 +40,7 @@ class AIPlayer(Player):
             best_next_position_idx = best_score_next_positions_indices[min_path_idx]
             best_next_position = next_positions[best_next_position_idx]
         except ValueError:
+            joblib.dump(current_position_copy, 'cp_board.joblib')
             best_next_position = successors[np.argmax([graph.nodes[x]['h'] for x in successors])]
         move = graph.edges[current_position_copy, best_next_position]['move']
 

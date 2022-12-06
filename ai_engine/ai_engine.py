@@ -1,4 +1,5 @@
 import multiprocessing
+from datetime import datetime
 from multiprocessing import Process
 from time import sleep
 
@@ -110,17 +111,12 @@ class AIEngine:
                 self.G.nodes[current_position].get('processed_depth', -1) >= go_n_more_layers:
             return True
 
-        if current_position.winner is not None:  # TODO: это тоже можно заменить на sliding эврситику с кэшем, быстрее будет
+        if current_position.winner is not None:
             self.G.nodes[current_position]['score'] = np.inf if current_position.winner.color == self.color else -np.inf
             self.G.nodes[current_position]['steps_to_end'] = 0
             self.G.nodes[current_position]['processed_depth'] = 0
             self.G.nodes[current_position]['game_over'] = True
             return True
-
-        try:
-            my_pred = self.G.nodes[next(self.G.predecessors(current_position))]
-        except StopIteration:
-            my_pred = None
 
         if go_n_more_layers == 0:
             value = self.find_or_calc_position_h(current_position, calc_if_not_found=True)
@@ -136,7 +132,7 @@ class AIEngine:
         else:
             possible_moves = self.get_possible_moves_from_position(current_position)
             if len(possible_moves) == 0:  # значит не осталось пустых полей
-                print('no more moves!!')
+                print('no more moves!!', flush=True)
                 self.G.nodes[current_position]['score'] = 0
                 self.G.nodes[current_position]['h'] = 0
                 self.G.nodes[current_position]['steps_to_end'] = 0
@@ -169,8 +165,17 @@ class AIEngine:
                 placeholder=(-np.inf if is_my_move else np.inf)
             ))
 
+        if len(sorted_by_score_positions) == 0:
+            raise ValueError(f'sorted_by_score_positions len = 0')
+
+        try:
+            my_pred = self.G.nodes[next(self.G.predecessors(current_position))]
+        except StopIteration:
+            my_pred = None
+
         for i, next_position in enumerate(sorted_by_score_positions):
             if i > 0 and self.stop_flag.value == 1:
+                # print(f'exiting {go_n_more_layers}, {self.stop_flag.value}', flush=True)
                 return False
 
             if not self.G.has_node(next_position):
@@ -227,43 +232,34 @@ class EnginePortal:
                           stop_flag=flag, timed=True)
 
         while True:
-            position, is_my_move, send_result, search_depth = self.inn.recv()
-
             flag.value = 0
-            # print('received positions', len(positions), is_my_move, flush=True)
+            position, is_my_move, send_result, search_depth = self.inn.recv()
 
             nx.set_node_attributes(engine.G, None, 'best_outcome')
 
-            # time_c = datetime.now()
-            # print('calculating position', hash(position), position.last_move(), is_my_move, flush=True)
-
             if not engine.G.has_node(position):
                 engine.G.add_node(position)
-                # print(f'added position {hash(position)} to graph', flush=True)
 
             engine.generate_next_moves(position, is_my_move, search_depth)
 
-            # print('finished calculation', len(positions), hash(positions[0]), flush=True)
-            # print('Sending graph', len(engine.G.nodes), engine.G.has_node(positions[0]),
-            #       'time:', datetime.now() - time_c, flush=True)
             if send_result:
                 self.inn.send(nx.DiGraph(engine.G.subgraph([position] + list(engine.G.successors(position)))))
 
     def get_graph(self, position: Field, is_my_move: bool) -> nx.DiGraph:
-        # print(f'got move made ({position.last_move()}, {hash(position)}), stopping calculation', is_my_move, flush=True)
         if self.user_opponent_time:
             self.flag.value = 1  # останавливаем прошлый обсчет
 
         self.out.send((position, is_my_move, True, calculation_depth))  # кладем текущую позицию на обсчет
 
         if self.time_limit_for_move is not None:
-            sleep(self.time_limit_for_move)  # ждем обсчет
+            # if np.sum(position.board != position.empty_color) <= 4:
+            #     sleep(self.time_limit_for_move)  # ждем обсчет
+            # else:
+            #     print('start fucking', flush=True)
             self.flag.value = 1  # останавливаем текущий обсчет
 
         graph: nx.DiGraph = self.out.recv()  # получаем обсчитанный граф
 
-        # print(f'received graph, returning: hash={hash(position)}, last_move={position.last_move()}, score={graph.nodes[position]["score"]}', flush=True)
-        # print('successor scores:', [(graph.nodes[x]['score'], x.last_move()) for x in graph.successors(position)])
         return graph
 
     def set_my_move(self, position: Field):
