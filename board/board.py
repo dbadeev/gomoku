@@ -49,6 +49,7 @@ class Field:
 		self.filename = filename
 		self.size = size
 		self.players = players
+		self.ai_bot = None
 		self.notation = notation
 		self.term_mode = term_mode
 		self.timers = [0, 0]

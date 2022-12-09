@@ -87,6 +87,9 @@ def main(debug=False):
 		# пока заглушка
 		game = Field(filename=None, players=[])
 		players = [get_player(args.p1, [1, 2, game]), get_player(args.p2, [2, 1, game])]
+
+		game.ai_bot = get_player('AI', [0, 0, game])
+
 		if args.p1 == "human":
 			players[0].human = 1
 		if args.p2 == "human":

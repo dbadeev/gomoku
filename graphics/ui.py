@@ -49,7 +49,7 @@ class UI(object):
         u_btn.configure(command=self.root.undoCallback, **btn_config)
         u_btn.place(relx=0.45, rely=0.5, anchor='s')
 
-        h_btn = tk.Button(self.panel_top, text="Help!")
+        h_btn = tk.Button(self.panel_top, text="Prompt")
         h_btn.configure(command=self.root.helpCallback, **btn_config)
         h_btn.place(relx=0.55, rely=0.5, anchor='s')
 
