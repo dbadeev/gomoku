@@ -1,24 +1,24 @@
 import time
 import tkinter as tk
 
-# from agent import Agent
-# from game_assist import GameAssist
-from board.board import Field
-from board.board import game_log
-from .canvas import Canvas
-from .ui import UI
-from .lib import BACKGROUND_COLOR, SIZE
-from player.human_player import HumanPlayer
-from player.ai_player import AIPlayer
 import globals
+from board.board import game_log
+from player.ai_player import AIPlayer
+from player.human_player import HumanPlayer
+from .canvas import Canvas
+from .lib import BACKGROUND_COLOR, SIZE
+from .ui import UI
+
 
 # класс отрисовки
 class Movie(object):
-	def __init__(self, Field, log):
+	def __init__(self, Field, log, bot_config={}):
 		# ссылка на все основные элементы игрового поля
 		# self.GameAssist = GameAssist
 		self.Field = Field
 		self.log = log
+
+		self.bot_config = bot_config
 
 		# подключение и настройка ткинтера
 		self.root = tk.Tk()
@@ -215,7 +215,7 @@ class Movie(object):
 	def create_ai_bot_for_cnt_player(self) -> AIPlayer:
 		player = self.Field.players[self.Field.cnt_player]
 
-		ai_bot = globals.get_player("AI", [player.color, player.opponent_color, self.Field], {})
+		ai_bot = globals.get_player("AI", [player.color, player.opponent_color, self.Field], self.bot_config)
 
 		ai_bot.captures = player.captures
 		ai_bot.five_in_a_raw_prev = player.five_in_a_row_prev

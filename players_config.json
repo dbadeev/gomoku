@@ -1,10 +1,15 @@
 {
   "player1": {
     "heuristic_power_base": 20,
-    "calculation_depth": 2,
+    "calculation_depth": 3,
     "heuristic_name": "l1"
   },
   "player2": {
+    "heuristic_power_base": 20,
+    "calculation_depth": 3,
+    "heuristic_name": "l1"
+  },
+  "bot": {
     "heuristic_power_base": 20,
     "calculation_depth": 2,
     "heuristic_name": "l1"

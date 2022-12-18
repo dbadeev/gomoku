@@ -78,17 +78,13 @@ def parse_args() -> argparse.Namespace:
 	# :return: Exit if smth wrong with parameters, pass otherwise
 	# """
 
-def parse_config() -> Tuple[dict, dict]:
-	p1_conf, p2_conf = {}, {}
-
+def parse_config(tag: str) -> dict:
 	try:
 		with open('./players_config.json', 'r') as f:
 			conf = json.load(f)
-			p1_conf, p2_conf = conf.get('player1', {}), conf.get('player2', {})
+			return conf.get(tag, {})
 	except FileNotFoundError:
-		pass
-
-	return p1_conf, p2_conf
+		return {}
 
 def main(debug=False):
 	"""
@@ -97,14 +93,14 @@ def main(debug=False):
 	exceptions_to_catch = EmptyException if debug else Exception
 	try:
 		args = parse_args()
-		p1_conf, p2_conf = parse_config()
+		p1_conf, p2_conf = parse_config("player1"), parse_config("player2")
 		# validate_args(args)
 		# С разными вариантами Player-ов нужно будет переделать,
 		# пока заглушка
 		game = Field(filename=None, players=[])
 		players = [get_player(args.p1, [1, 2, game], p1_conf), get_player(args.p2, [2, 1, game], p2_conf)]
 
-		game.ai_bot = get_player('AI', [0, 0, game], {})
+		game.ai_bot = get_player('AI', [0, 0, game], {}) # TODO удалить
 
 		if args.p1 == "human":
 			players[0].human = 1
@@ -115,7 +111,8 @@ def main(debug=False):
 		if args.term or debug:
 			game.start_terminal(args.log)
 		else:
-			Movie(game, args.log)
+			Movie(game, args.log, parse_config("bot"))
+
 		ai_engine.terminate_processes()
 
 	except exceptions_to_catch as e:
