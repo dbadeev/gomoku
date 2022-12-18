@@ -212,14 +212,26 @@ class Movie(object):
 		ai_bot.opponent_color = player.opponent_color
 		return ai_bot
 
+	def create_ai_bot_for_cnt_player(self) -> AIPlayer:
+		player = self.Field.players[self.Field.cnt_player]
+
+		ai_bot = globals.get_player("AI", [player.color, player.opponent_color, self.Field], {})
+
+		ai_bot.captures = player.captures
+		ai_bot.five_in_a_raw_prev = player.five_in_a_row_prev
+		# ai_bot.human = 1
+		ai_bot.last_move = player.last_move
+		return ai_bot
+
 	def on_click_help(self, iteration=0):
 		if not self.readyForInput():
 			return
 		# self.move = self.Field.move_hint()
-		ai_bot = globals.get_player("AI", [0, 0, self.Field])
 		cnt_player = self.Field.cnt_player
+
+		ai_bot = self.create_ai_bot_for_cnt_player()
 		# self.Field.ai_bot = self.cnt_player_to_ai_bot()
-		ai_bot = self.cnt_player_to_ai_bot_(ai_bot)
+
 		self.Field.begin = time.time()
 		# self.move = self.Field.ai_bot.get_move(self.Field)[::-1]
 		self.move = ai_bot.get_move(self.Field)[::-1]

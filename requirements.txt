@@ -1,6 +1,6 @@
 numpy>=1.16.2
 Pillow>=5.4.1
 anytree>=2.8.0
-typing~=3.7.4.3
-future~=0.18.2
-networkx~=2.7.1
+typing>=3.7.4.3
+future>=0.18.2
+networkx>=2.7.1

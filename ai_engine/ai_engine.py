@@ -1,5 +1,4 @@
 import multiprocessing
-from datetime import datetime
 from multiprocessing import Process
 from time import sleep
 
@@ -9,16 +8,17 @@ import numpy as np
 from board.board import Field
 from heuristics.heuristics import HEURISTICS
 
-calculation_depth = 2
-
 
 class AIEngine:
     def __init__(self, board_size: int, empty_color: int, color: int, opponent_color: int, timed=False,
-                 heuristic_name='l1', stop_flag: multiprocessing.Value = None):
+                 heuristic_name='l1', heuristic_power_base=20, stop_flag: multiprocessing.Value = None,
+                 calculation_depth=None):
         self.G = nx.DiGraph()
+        self.calculation_depth = calculation_depth or 2
 
         if heuristic_name in HEURISTICS:
-            self.h = HEURISTICS[heuristic_name](board_size, color, opponent_color, empty_color)
+            self.h = HEURISTICS[heuristic_name](board_size, color, opponent_color, empty_color,
+                                                power_base=heuristic_power_base)
         else:
             raise ValueError(f'unknown heuristic name: {heuristic_name}')
 
@@ -161,7 +161,7 @@ class AIEngine:
             successor_positions,
             key=lambda x: (-1 if is_my_move else 1) * self.find_or_calc_position_h(
                 x,
-                calc_if_not_found=go_n_more_layers >= calculation_depth,
+                calc_if_not_found=go_n_more_layers >= self.calculation_depth,
                 placeholder=(-np.inf if is_my_move else np.inf)
             ))
 
@@ -213,7 +213,7 @@ class AIEngine:
 
 class EnginePortal:
     def __init__(self, board: Field, my_color: int, opponent_color: int, heuristic_name='l1', user_opponent_time=False,
-                 time_limit_for_move=None):
+                 time_limit_for_move=None, heuristic_power_base=None, calculation_depth=None):
 
         self.user_opponent_time = user_opponent_time
         self.time_limit_for_move = time_limit_for_move
@@ -222,14 +222,20 @@ class EnginePortal:
 
         self.flag = multiprocessing.Value('b', 0)
 
+        self.calculation_depth = calculation_depth or 2
+
         self.process = Process(target=self.start_generating_moves,
                                args=(
-                                   self.flag, board.size, board.empty_color, my_color, opponent_color, heuristic_name))
+                                    self.flag, board.size, board.empty_color, my_color,
+                                    opponent_color, heuristic_name, heuristic_power_base,
+                                    calculation_depth))
         self.process.start()
 
-    def start_generating_moves(self, flag, board_size, empty_color, my_color, opponent_color, heuristic_name):
+    def start_generating_moves(self, flag, board_size, empty_color, my_color, opponent_color, heuristic_name,
+                               heuristic_power_base, calculation_depth):
         engine = AIEngine(board_size, empty_color, my_color, opponent_color, heuristic_name=heuristic_name,
-                          stop_flag=flag, timed=True)
+                                heuristic_power_base=heuristic_power_base, calculation_depth=calculation_depth,
+                                stop_flag=flag, timed=True)
 
         while True:
             flag.value = 0
@@ -249,7 +255,7 @@ class EnginePortal:
         if self.user_opponent_time:
             self.flag.value = 1  # останавливаем прошлый обсчет
 
-        self.out.send((position, is_my_move, True, calculation_depth))  # кладем текущую позицию на обсчет
+        self.out.send((position, is_my_move, True, self.calculation_depth))  # кладем текущую позицию на обсчет
 
         if self.time_limit_for_move is not None:
             sleep(self.time_limit_for_move)  # ждем обсчет
@@ -262,7 +268,7 @@ class EnginePortal:
     def set_my_move(self, position: Field):
         if self.user_opponent_time:
             self.out.send(
-                (position, False, False, calculation_depth + 1))  # кладем мой ход на обсчет того, что сделает противник
+                (position, False, False, self.calculation_depth + 1))  # кладем мой ход на обсчет того, что сделает противник
 
 
 _portals: dict[int, EnginePortal] = {}
@@ -274,12 +280,14 @@ def get_portal(portal_idx) -> EnginePortal:
 
 
 def start(board: Field, my_color: int, opponent_color: int, time_limit_for_move=None, heuristic_name='l1',
+          heuristic_power_base=None, calculation_depth=None,
           user_opponent_time=False) -> int:
     global _portals
 
     new_portal_idx = len(_portals) + 1
     _portals[new_portal_idx] = EnginePortal(board, my_color, opponent_color, time_limit_for_move=time_limit_for_move,
-                                            heuristic_name=heuristic_name, user_opponent_time=user_opponent_time)
+                                            heuristic_name=heuristic_name, heuristic_power_base=heuristic_power_base,
+                                            user_opponent_time=user_opponent_time, calculation_depth=calculation_depth)
     return new_portal_idx
 
 

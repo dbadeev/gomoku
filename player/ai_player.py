@@ -11,9 +11,10 @@ from .base_player import Player
 class AIPlayer(Player):
     timed = False
 
-    def pregame_init(self, board: Field, heuristic_name='l1'):
+    def pregame_init(self, board: Field, heuristic_name='l1', heuristic_power_base=None, calculation_depth=None):
         self.engine_idx = ai_engine.start(board, self.color, self.opponent_color, time_limit_for_move=0.5,
-                                          heuristic_name=heuristic_name, user_opponent_time=True)
+                                          heuristic_name=heuristic_name, heuristic_power_base=heuristic_power_base,
+                                          user_opponent_time=True, calculation_depth=calculation_depth)
 
     def get_move(self, current_position: Field) -> Tuple[int, int]:
 

@@ -29,10 +29,10 @@ def calculate_score_for_line(line: np.ndarray, my_char, opponent_char) -> np.flo
 
 class SlidingWindowHeuristicBase:  # отсюда надо просто наследовать разные классы, по-разному реализуя calculate_score_for_line и давать играть друг с другом
     line_len_to_analyze = 5
-    power_foundation = 19
 
-    def __init__(self, board_size, my_char, opponent_char, empty_char):
+    def __init__(self, board_size, my_char, opponent_char, empty_char, power_base=None):
         self.board_size = board_size
+        self.power_foundation = power_base or 20
 
         self.my_char = my_char
         self.opponent_char = opponent_char

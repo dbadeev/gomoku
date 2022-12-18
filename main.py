@@ -1,5 +1,8 @@
 import argparse
+import json
+import os.path
 import sys
+from typing import Tuple
 
 from globals import *
 from messages import Messages
@@ -52,6 +55,7 @@ def parse_args() -> argparse.Namespace:
 						default=False,
 						help='Show moves log at the end of the game ('
 							 'default=False)')
+
 	# parser.add_argument('--depth', '-d',
 	# 					dest='depth',
 	# 					type=int,
@@ -74,6 +78,17 @@ def parse_args() -> argparse.Namespace:
 	# :return: Exit if smth wrong with parameters, pass otherwise
 	# """
 
+def parse_config() -> Tuple[dict, dict]:
+	p1_conf, p2_conf = {}, {}
+
+	try:
+		with open('./players_config.json', 'r') as f:
+			conf = json.load(f)
+			p1_conf, p2_conf = conf.get('player1', {}), conf.get('player2', {})
+	except FileNotFoundError:
+		pass
+
+	return p1_conf, p2_conf
 
 def main(debug=False):
 	"""
@@ -82,13 +97,14 @@ def main(debug=False):
 	exceptions_to_catch = EmptyException if debug else Exception
 	try:
 		args = parse_args()
+		p1_conf, p2_conf = parse_config()
 		# validate_args(args)
 		# С разными вариантами Player-ов нужно будет переделать,
 		# пока заглушка
 		game = Field(filename=None, players=[])
-		players = [get_player(args.p1, [1, 2, game]), get_player(args.p2, [2, 1, game])]
+		players = [get_player(args.p1, [1, 2, game], p1_conf), get_player(args.p2, [2, 1, game], p2_conf)]
 
-		game.ai_bot = get_player('AI', [0, 0, game])
+		game.ai_bot = get_player('AI', [0, 0, game], {})
 
 		if args.p1 == "human":
 			players[0].human = 1
