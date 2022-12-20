@@ -959,11 +959,11 @@ def game_log(Field: Field):
 	for m in range(0, moves_num):
 		if (len(Field.move_history) % 2 != 0) and (m == moves_num - 1):
 			if Field.capture_history[2 * m]:
-				captures_0 += 2
+				captures_0 += len(Field.capture_history[2 * m])
 				Say(f"{m + 1}.\t"
 					  f""
 					  f"{tuple_plus_one(Field.move_history[2 * m])}"
-					  f"\t\t\t\t\t\t"
+					  f"  \t\t\t\t\t"
 					  f"{captures_0} : {captures_1}").info_()
 				# print(f"{m}.\t{Field.move_history[2 * (m - 1)]}\t\t\t\t\t\t"
 				# 	  f"{captures_0} : {captures_1}")
@@ -974,9 +974,9 @@ def game_log(Field: Field):
 			if Field.capture_history[2 * m] or \
 					Field.capture_history[2 * m + 1]:
 				if Field.capture_history[2 * m]:
-					captures_0 += 2
+					captures_0 += len(Field.capture_history[2 * m])
 				if Field.capture_history[2 * m + 1]:
-					captures_1 += 2
+					captures_1 += len(Field.capture_history[2 * m + 1])
 				Say(f"{m + 1}.\t"
 					  f"{tuple_plus_one(Field.move_history[2 * m])}  \t"
 					  f"{tuple_plus_one(Field.move_history[2 * m + 1])}  \t\t"
